@@ -78,6 +78,9 @@ jspm_packages/
 # dotenv environment variables file
 .env
 
+# linebot-hackathon json file
+linebot-hackathon-420909-c914b5501f26.json
+
 # next.js build output
 .next
 

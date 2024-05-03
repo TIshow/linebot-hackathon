@@ -15,7 +15,7 @@
 <script>
   async function initializeLiff() {
     try {
-      await liff.init({ liffId: "liffId" });
+      await liff.init({ liffId: process.env.LIFF_ID });
       if (!liff.isLoggedIn()) {
         liff.login();
       } else {

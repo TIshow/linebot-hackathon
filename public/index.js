@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-  liff.init({ liffId:  "liffId" }).then(() => {
+  liff.init({ liffId: process.env.LIFF_ID }).then(() => {
     if (liff.isLoggedIn()) {
       liff.getProfile().then(profile => {
         const userId = profile.userId;
