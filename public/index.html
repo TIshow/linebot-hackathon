@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>夢日記アプリ</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
 <!-- font -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,11 +34,14 @@
           })
           .then(dreams => {
             if (dreams.length > 0) {
+              const lastDream = dreams[dreams.length - 1]; // 最後の夢のデータを取得
               const timeContainer = document.querySelector('.diaryContainer__time');
               const textContainer = document.querySelector('.diaryContainer__text');
-              // Display the first dream in the provided containers
-              timeContainer.textContent = dreams[0].Timestamp;
-              textContainer.textContent = dreams[0].Story;
+              const feedbackContainer = document.querySelector('.diaryContainer__feedback');
+              // Display the last dream in the provided containers
+              timeContainer.textContent = lastDream.Timestamp;
+              textContainer.textContent = lastDream.Story;
+              feedbackContainer.textContent = lastDream.Feedback;
             }
           })
         .catch(error => {
@@ -48,6 +53,38 @@
     }
   }
 
+  async function fetchDreamsByDate() {
+    const datePicker = document.getElementById('date-picker');
+    const selectedDate = datePicker.value;
+    if (!selectedDate) return;
+
+    const userId = liff.getContext().userId;
+    const url = `/fetchDreams?userId=${userId}&date=${selectedDate}`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(dreams => {
+        const container = document.querySelector('.diaryContainer');
+        container.innerHTML = ''; // コンテナをクリア
+        if (dreams.length > 0) {
+          const dream = dreams[0]; // その日の最初の夢を取得
+          const timeContainer = document.createElement('div');
+          timeContainer.className = 'diaryContainer__time';
+          timeContainer.textContent = dream.Timestamp;
+          
+          const textContainer = document.createElement('div');
+          textContainer.className = 'diaryContainer__text';
+          textContainer.textContent = dream.Story;
+          
+          container.appendChild(timeContainer);
+          container.appendChild(textContainer);
+        } else {
+          container.textContent = '選択された日付の夢はありません。';
+        }
+      })
+      .catch(error => console.error('Fetch error:', error));
+  }
+
   document.addEventListener("DOMContentLoaded", initializeLiff);
 </script>
 <style>
@@ -55,17 +92,26 @@
     font-family: "DotGothic16", sans-serif;
     color: white;
   }
+
+  body {
+    margin: 0;
+  }
   
   .container {
     min-height: 100vh;
+    padding: 14px;
     background-image: linear-gradient(180deg, rgba(48, 174, 205, 1), rgba(43, 99, 103, 1) 60%, rgba(1, 8, 8, 1));
   }
   
   .header {
     height: 60px;
+    padding: 16px 24px;
   }
   
   .diaryContainer {
+    margin: auto;
+    max-width: 600px;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -79,15 +125,18 @@
     margin-bottom: 10px;
   }
   
-  .diaryContainer__image {
-    max-width: 400px;
-    height: 300px;
+  .diaryContainer__image > img {
+    margin: 12px 0;
+    max-width: 100%;
+    height: 400px;
     object-fit: cover;
     border: 3px solid white;
   }
   
   .analysis {
     padding: 14px;
+    margin: auto;
+    max-width: 600px;
   }
   
   h2 {
@@ -103,12 +152,19 @@
     </div>
     <div class="diaryContainer">
       <div class="diaryContainer__time"></div>
-      <div class="diaryContainer__image"></div>
+      <div class="diaryContainer__image"><img src="https://images.unsplash.com/photo-1713204641930-9be477a56a8d?q=80&w=2942&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt=""></div>
       <div class="diaryContainer__text"></div>
+      
     </div>
     <div class="analysis">
       <h2>Dr.ゆめうさぎの夢分析</h2>
-      <p class="analysis__text"></p>
+      <p class="analysis__text">
+        <div class="diaryContainer__feedback"></div>
+      </p>
+    </div>
+    <div class="date-picker-container">
+      <label for="date-picker">日付を選択:</label>
+      <input type="date" id="date-picker" onchange="fetchDreamsByDate()">
     </div>
     <div class="footer">copyright</div>
   </div>

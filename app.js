@@ -33,11 +33,9 @@ app.use('/liff', express.static(__dirname + '/public'))
 app.get('/fetchDreams', async (req, res) => {
   const userId = req.query.userId;
   const dreams = await fetchDreamsFromSpreadsheet(userId);
-  console.log("dreams: " + dreams);
   res.json(dreams);
 });
 app.post('/webhook', line.middleware(config), (req, res) => {
-  console.log("request: " + req.body.events[0].message.text);
   Promise.all(req.body.events.map(event => {
       return handleEvent(event);
   })).then((result) => res.json(result));
@@ -50,18 +48,11 @@ const questions = [
 ];
 
 async function generateFreudianFeedback(story) {
-  // const symbols = extractKeywords(story); // extract keywords from tory
   const feedback = await generatePsychologicalInterpretation(story); // generate feedback after analyzing keyword
   return feedback;
 }
 
-// function extractKeywords(story) {
-//   // ここでは簡単なキーワード抽出の例を示すが、実際にはもっと複雑なNLP処理が必要。
-//   return story.match(/(夢|恐怖|友人|逃げる|探す|愛)/g) || [];
-// }
-
 async function generatePsychologicalInterpretation(symbols) {
-  // const prompt = `Interpret these dream symbols psychologically based on Freud's Dream Interpretation in Japanese: ${symbols.join(", ")}`;
   const prompt = `Interpret these dream symbols psychologically based on Freud's Dream Interpretation in Japanese（日本語で回答）: ${symbols}`;
   const completion = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -109,16 +100,14 @@ async function handleEvent(event) {
     return client.replyMessage(event.replyToken, { type: 'text', text: questions[userSession.questionIndex] });
   } else {
     // generate the story once the questions are completed
-    console.log("sessions[userId].responses: " +sessions[userId].responses);
     const story = await generateStory(userSession.responses);
     const illustrationUrl = await generateIllustration(story);
     const feedback = await generateFreudianFeedback(story);
 
     sessions[userId] = null; // reset the session
 
-    await accessStorySpreadsheet({ UserId: userId, Story: story, Timestamp: new Date().toISOString() });
+    await accessStorySpreadsheet({ UserId: userId, Story: story, Timestamp: new Date().toISOString(), Feedback: feedback });
     const similarDreamsCount = await checkForSimilarDreams(story, new Date().toDateString());
-    // const similarDreamMessages = similarDreams.map(d => `${d.UserId}: ${d.Story}`).join('\n');
 
     if (illustrationUrl) {
       // send url of text and illustration to LINE
@@ -132,13 +121,6 @@ async function handleEvent(event) {
         // if it's failed
         return client.replyMessage(event.replyToken, { type: 'text', text: story });
     }
-
-    // image無し版（（節約）
-    // await client.replyMessage(event.replyToken, [
-    //   { type: 'text', text: story },
-    //   { type: 'text', text: `フロイト夢分析:\n\n${feedback}` },
-    //   { type: 'text', text: `あなたの他に、今日同じ夢を見た人が${similarDreamsCount - 1}人いました` },
-    // ]);
   }
 }
 

@@ -42,7 +42,8 @@ async function fetchAllDreams() {
   return rows.map(row => ({
     UserId: row.get('UserId'),
     Story: row.get('Story'),
-    Timestamp: new Date(row.get('Timestamp')).toDateString()
+    Timestamp: new Date(row.get('Timestamp')).toDateString(),
+    Feedback: row.get('Feedback'),
   }));
 }
 
@@ -106,6 +107,7 @@ async function fetchDreamsFromSpreadsheet(userId) {
   const userDreams = rows.filter(row => row.get('UserId') === userId).map(row => ({
     Story: row.get('Story'),
     Timestamp: row.get('Timestamp'),
+    Feedback: row.get('Feedback'),
   }));
 
   return userDreams;

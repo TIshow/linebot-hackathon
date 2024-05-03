@@ -3,14 +3,13 @@ document.addEventListener("DOMContentLoaded", function() {
     if (liff.isLoggedIn()) {
       liff.getProfile().then(profile => {
         const userId = profile.userId;
-        console.log("userId index.js:" + userId);
         fetch(`/fetchDreams?userId=${userId}`)
         .then(response => response.json())
         .then(dreams => {
           const container = document.getElementById('dreamsContainer');
           dreams.forEach(dream => {
             const div = document.createElement('div');
-            div.textContent = dream.content; // 仮のプロパティ名
+            div.textContent = dream.content;
             container.appendChild(div);
           });
         });
